@@ -49,7 +49,7 @@ var i = 0;
 
 function test()
 {
-	IRsend.sendRaw(powerOn, 69, 38, IR.SEND_PIN_2, function() {
+	IRsend.sendRaw(powerOn, 69, 38, IR.SEND_PIN_3, function() {
                 console.log("Test Callback");
                 });
 	i++;

@@ -7,7 +7,7 @@ var i = 0;
 
 function test()
 {
-	IRsend.sendNEC(0x20df10ef, 32, IR.SEND_PIN_1, function() {console.log("Callback");});
+	IRsend.sendNEC(0x20df10ef, 32, IR.SEND_PIN_3, function() {console.log("Callback");});
 	i++;
 	if (i > 3)
 	{

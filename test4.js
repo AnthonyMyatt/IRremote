@@ -7,7 +7,8 @@ var fs = require('fs');
 var file = __dirname + '/testDevices.json';
 
 console.log("Reading Device File...");
-var devices = fs.readFileSync(file, 'utf8');
+var data = fs.readFileSync(file, 'utf8');
+var devices = JSON.parse(data);
 
 printMainMenu();
 
@@ -39,7 +40,7 @@ function printDeviceMenu()
 	console.log("Please select a device or 'R' to return to previous menu");
 	console.log("Devices:");
 	var i;
-	for (i = 0; i != devices.count(); i++)
+	for (i = 0; i < devices.length; i++)
 	{
 		console.log(i+1 + ". " + devices[i].name);
 	}
@@ -49,14 +50,48 @@ function printDeviceMenu()
 		{
 			printMainMenu();
 		}
-		else if (parseInt(opt, 10)-1 < devices.count())
+		else if (parseInt(opt, 10)-1 < devices.length)
 		{
-			
+			printCodeMenu(parseInt(opt, 10)-1);
 		}
 		else
 		{
 			console.log("Device '" + opt + "' is not a valid option");
 			printDeviceMenu();
+		}
+	});
+}
+
+function printCodeMenu(deviceIdx)
+{
+	var device = devices[deviceIdx];
+	console.log("--------------------------");
+	console.log("Please select a code or 'R' to return to previous menu");
+	console.log(device.name + " Codes:");
+	var i;
+	for (i = 0; i < device.codes.length; i++)
+	{
+		console.log(i+1 + ". " + device.codes[i].name);
+	}
+
+	ask("<codes>", /.+/, function(opt) {
+		if (opt == "R" || opt == "r")
+		{
+			printDeviceMenu();
+		}
+		else if (parseInt(opt, 10)-1 < device.codes.length)
+		{
+			var code = device.codes[parseInt(opt, 10)-1];
+			if (code.type == "NEC")
+			{
+				IRsend.sendNEC(parseInt(code.data, 16), code.bits, IR.SEND_PIN_3, function() {console.log("Sent");});
+				printCodeMenu(deviceIdx);
+			}
+		}
+		else
+		{
+			console.log("Code '" + opt + "' is not a valid option");
+			printCodeMenu(deviceIdx);
 		}
 	});
 }

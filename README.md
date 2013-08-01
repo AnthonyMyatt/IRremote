@@ -7,7 +7,9 @@
 
 ### The Cape
 The IR Cape consists of three LED outputs that can be connected to IR extender cables such as this one
-![IR Cable](http://anthonymyatt.github.io/images/ir_cable.jpeg) and can then be used to control up to three devices (or more, by using one IR cable for multiple devices if they don't share IR codes).
+<img src="http://anthonymyatt.github.io/images/ir_cable.jpg" width="50%" height="50%" alt="IR Cable"/>
+<br/>
+and can then be used to control up to three devices (or more, by using one IR cable for multiple devices if they don't share IR codes).
 
 ### The Node.JS Module
 The module for node.js is where the magic happens. With only three lines of javascript you can turn your TV on.

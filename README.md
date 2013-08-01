@@ -15,7 +15,7 @@ The module for node.js is where the magic happens. With only three lines of java
 ```javascript
 var IR = require("./build/Release/IRremote.node");
 var IRsend = new IR.IRsend();
-IRsend.sendNEC(0x68B92, 20, IR.SEND_PIN_1, function() {});
+IRsend.sendSony(0xa90, 12, IR.SEND_PIN_1, function() {});
 ```
 
 

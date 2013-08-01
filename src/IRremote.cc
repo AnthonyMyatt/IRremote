@@ -10,6 +10,10 @@
 
 #include "IRremoteInt.h"
 
+#define DEBUG
+
+#include "debug.h"
+
 using namespace v8;
 using namespace std;
 
@@ -46,14 +50,13 @@ protected:
     static void doCallback(uv_work_t* req);
 
     // private
-    void enableIROut(int khz);
+    bool enableIROut(int khz);
     void mark(int usec, unsigned int pin);
     void space(int usec, unsigned int pin);
 
 private:
-    LibPWM pwm;
-    unsigned int selectedPin;
-    uv_loop_t *loop;
+    LibPWM pwm;         // PWM Library
+    uv_loop_t *loop;    // LibUV Loop
 
     static const unsigned int SEND_PIN_1;
     static const unsigned int SEND_PIN_2;
@@ -125,6 +128,7 @@ void IRsend::Init(Handle<Object> target) {
 
     // Register the functions
     NODE_SET_PROTOTYPE_METHOD(constructor, "sendNEC", sendNEC);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "sendRaw", sendRaw);
 
     target->Set(name, constructor->GetFunction());
 }
@@ -151,8 +155,7 @@ Handle<Value> IRsend::New(const Arguments& args)
 
     if (!args.IsConstructCall()) {
         return ThrowException(Exception::TypeError(
-                                                   String::New("Use the new operator to create instances of this object"))
-                              );
+                    String::New("Use the new operator to create instances of this object")));
     }
 
     IRsend* obj = new IRsend();
@@ -178,29 +181,23 @@ void IRsend::space(int time, unsigned int pin)
     if (time > 0) usleep(time);
 }
 
-void IRsend::enableIROut(int khz)
+bool IRsend::enableIROut(int khz)
 {
-    printf("Enable IR Out: %u kHz\n", khz);
+    LOG_INFO("Enable IR Out: %u kHz\n", khz);
 
     pwm.stop();
-
-    std::cout << "C1" << std::endl;
-
-    pwm.setPeriod(khz*1000);
-
-    std::cout << "C2" << std::endl;
-
-    pwm.setDuty(0.5);
-
-    std::cout << "C3" << std::endl;
-
+    if (!pwm.setPeriod(khz*1000) || !pwm.setDuty(0.5))
+    {
+        LOG_ERROR("Failed to start IR output");
+        return false;
+    }
     pwm.run();
-
-    std::cout << "C4" << std::endl;
+    return true;
 }
 
 // Public
 
+/* SEND NEC IR DATA */
 Handle<Value> IRsend::sendNEC(const Arguments& args)
 {
     HandleScope scope;
@@ -222,60 +219,39 @@ Handle<Value> IRsend::sendNEC(const Arguments& args)
     request->nbits = nbits;
     request->pin = pin;
 
-    printf("sendNEC: 0x%lX (%u) - %u\n", data, nbits, pin);
-
-    std::cout << "A1" << std::endl;
+    LOG_INFO("Queuing NEC Command On Pin: %u", pin);
 
     if ( args.Length() > 3 && args[3]->IsFunction() )
     {
         Local<Function> callback = Local<Function>::Cast(args[3]);
 
-	request->callback = Persistent<Function>::New(callback);
+        request->callback = Persistent<Function>::New(callback);
     }
-
-    std::cout << "A2" << std::endl;
 
     uv_work_t req;
     req.data = request;
 
-    std::cout << "A3" << std::endl;
-
     uv_queue_work(self->loop, &req, sendNEC, doCallback);
-
-    std::cout << "A4" << std::endl;
 
     return args.This();
 }
 
 void IRsend::sendNEC(uv_work_t* req)
 {
-    std::cout << "Sending NEC Command" << std::endl;
+    LOG_INFO("Sending NEC Command");
 
     Generic_req* request = (Generic_req*)req->data;
 
-    std::cout << "B1" << std::endl;
-
     IRsend* self = request->self;
 
-    std::cout << "B2" << std::endl;
-
     unsigned long data = request->data;
-
-    std::cout << "B3" << std::endl;
-
     int nbits = request->nbits;
-
-    std::cout << "B4" << std::endl;
-
     unsigned int pin = request->pin;
 
-    std::cout << "B5" << std::endl;
-
-    printf("Data: %lX\n", data);
-    printf("Len : %u\n", nbits);
-    printf("Pin : %u\n", pin);
-
-    self->enableIROut(38);
+    if (!self->enableIROut(38))
+    {
+        return;
+    }
     self->mark(NEC_HDR_MARK, pin);
     self->space(NEC_HDR_SPACE, pin);
     for (int i = 0; i < nbits; i++)
@@ -295,6 +271,80 @@ void IRsend::sendNEC(uv_work_t* req)
     self->mark(NEC_BIT_MARK, pin);
     self->space(0, pin); 
 }
+
+/* SEND RAW IR DATA */
+Handle<Value> IRsend::sendRaw(const Arguments& args)
+{
+    HandleScope scope;
+    
+    if ( args.Length() < 4 )
+    {
+        return ThrowException(Exception::TypeError(String::New("Bad argument")));
+    }
+    
+    IRsend* self = ObjectWrap::Unwrap<IRsend>(args.This());
+    
+    unsigned int buf[] = cvv8::CastFromJS<unsigned int[]> (args[0]);
+    int len = cvv8::CastFromJS<int> (args[1]);
+    unsigned int freq = cvv8::CastFromJS<unsigned int> (args[2]);
+    unsigned int pin = cvv8::CastFromJS<unsigned int> (args[3]);
+    
+    Raw_req request;
+    request.self = self;
+    request.buf = buf;
+    request.len = len;
+    request.hz = freq;
+    request.pin = pin;
+    
+    LOG_INFO("Queuing Raw Command On Pin: %u", pin);
+    
+    if ( args.Length() > 4 && args[4]->IsFunction() )
+    {
+        Local<Function> callback = Local<Function>::Cast(args[4]);
+        
+        request.callback = Persistent<Function>::New(callback);
+    }
+    
+    uv_work_t req;
+    req.data = request;
+    
+    uv_queue_work(self->loop, &req, sendRaw, doCallback);
+    
+    return args.This();
+}
+
+void IRsend::sendRaw(uv_work_t* req)
+{
+    LOG_INFO("Sending Raw Command");
+    
+    Raw_req request = req->data;
+    
+    IRsend* self = request->self;
+    
+    unsigned int buf[] = request.buf;
+    int len = request.len;
+    unsigned int hz = request.hz;
+    unsigned int pin = request.pin;
+    
+    if (!self->enableIROut(hz))
+    {
+        return;
+    }
+    
+    for (int i = 0; i < len; i++)
+    {
+        if (i & 1)
+        {
+            space(buf[i], pin);
+        }
+        else
+        {
+            mark(buf[i], pin);
+        }
+    }
+    space(0);
+}
+
 
 void IRsend::doCallback(uv_work_t* req)
 {

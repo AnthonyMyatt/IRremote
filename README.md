@@ -7,7 +7,7 @@
 
 ### The Cape
 The IR Cape consists of three LED outputs that can be connected to IR extender cables such as this one
-<img src="http://anthonymyatt.github.io/images/ir_cable.jpg" style="width:50%;height:50%" alt="IR Cable"/>
+<img src="http://anthonymyatt.github.io/images/ir_cable.jpg" width="150px" alt="IR Cable"/>
 <br/>
 and can then be used to control up to three devices (or more, by using one IR cable for multiple devices if they don't share IR codes).
 

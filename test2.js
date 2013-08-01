@@ -12,16 +12,16 @@ var IRsend = new IR.IRsend();
 var powerOn = [9061,4473, // Header
     		591,521,  // 0 - Pre-Data
 		591,521,  // 0
-		591,521,  // 0
 		591,1660, // 1
 		591,521,  // 0
 		591,521,  // 0
 		591,521,  // 0
 		591,521,  // 0
-		591,1660, // 1
+		591,521,  // 0
 		591,1660, // 1
 		591,1660, // 1
 		591,521,  // 0
+		591,1660, // 1
 		591,1660, // 1
 		591,1660, // 1
 		591,1660, // 1
@@ -42,14 +42,14 @@ var powerOn = [9061,4473, // Header
 		591,1660, // 1
 		591,1660, // 1
 		591,1660, // 1
-		590];     // pTrail
+		591,1660];     // pTrail
 
-setInterval(test,200);
+setInterval(test,100);
 
 
 function test()
 {
-	IRsend.sendRaw(powerOn, 69, 38, IR.SEND_PIN_1, function() {
+	IRsend.sendRaw(powerOn, 69, 38, IR.SEND_PIN_2, function() {
                 console.log("Test Callback");
                 });
 }

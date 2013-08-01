@@ -11,7 +11,7 @@
 
 #include "IRremoteInt.h"
 
-#define DEBUG
+//#define DEBUG
 
 #include "debug.h"
 

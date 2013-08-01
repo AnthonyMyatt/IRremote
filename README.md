@@ -20,6 +20,13 @@ var IRsend = new IR.IRsend();
 IRsend.sendSony(0xa90, 12, IR.SEND_PIN_1, function() {});
 ```
 
+## Recognition
+#### IRremote for Arduino (Ken Shirriff)
+The Node.JS module is based off of Ken Shirriff's IRremote library for the Arduino.
+
+***Please note***: Although the function names are the same as Ken's library, the arguments that the functions take are different and the internal workings of the functions are different due to the differences in hardware.
+
+
 
 ## License
 

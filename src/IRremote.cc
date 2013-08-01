@@ -4,6 +4,7 @@
 #include <string>
 #include <unistd.h>
 #include <iostream>
+#include <vector>
 
 #include <libpwm.h>
 #include "SimpleGPIO.h"
@@ -82,7 +83,7 @@ struct Generic_req : req_data	// NEC, Sony, RC5, RC6, DISH, Sharp
 
 struct Raw_req : req_data
 {
-    unsigned int buf[];
+    vector<unsigned int>  buf;
     int len;
     int hz;
 };
@@ -136,7 +137,7 @@ void IRsend::Init(Handle<Object> target) {
 IRsend::IRsend()
 : ObjectWrap()
 {
-    this->loop = uv_default_loop();
+    this->loop = uv_loop_new();
 
     gpio_export(SEND_PIN_1);
     gpio_export(SEND_PIN_2);
@@ -232,6 +233,7 @@ Handle<Value> IRsend::sendNEC(const Arguments& args)
     req.data = request;
 
     uv_queue_work(self->loop, &req, sendNEC, doCallback);
+    uv_run(self->loop);
 
     return args.This();
 }
@@ -284,17 +286,17 @@ Handle<Value> IRsend::sendRaw(const Arguments& args)
     
     IRsend* self = ObjectWrap::Unwrap<IRsend>(args.This());
     
-    unsigned int buf[] = cvv8::CastFromJS<unsigned int[]> (args[0]);
+    vector<unsigned int> buf = cvv8::CastFromJS<vector<unsigned int> > (args[0]);
     int len = cvv8::CastFromJS<int> (args[1]);
     unsigned int freq = cvv8::CastFromJS<unsigned int> (args[2]);
     unsigned int pin = cvv8::CastFromJS<unsigned int> (args[3]);
     
-    Raw_req request;
-    request.self = self;
-    request.buf = buf;
-    request.len = len;
-    request.hz = freq;
-    request.pin = pin;
+    Raw_req* request = new Raw_req;
+    request->self = self;
+    request->buf = buf;
+    request->len = len;
+    request->hz = freq;
+    request->pin = pin;
     
     LOG_INFO("Queuing Raw Command On Pin: %u", pin);
     
@@ -302,14 +304,15 @@ Handle<Value> IRsend::sendRaw(const Arguments& args)
     {
         Local<Function> callback = Local<Function>::Cast(args[4]);
         
-        request.callback = Persistent<Function>::New(callback);
+        request->callback = Persistent<Function>::New(callback);
     }
     
     uv_work_t req;
     req.data = request;
     
     uv_queue_work(self->loop, &req, sendRaw, doCallback);
-    
+    uv_run(self->loop);
+
     return args.This();
 }
 
@@ -317,52 +320,46 @@ void IRsend::sendRaw(uv_work_t* req)
 {
     LOG_INFO("Sending Raw Command");
     
-    Raw_req request = req->data;
+    Raw_req* request = (Raw_req*)req->data;
     
     IRsend* self = request->self;
     
-    unsigned int buf[] = request.buf;
-    int len = request.len;
-    unsigned int hz = request.hz;
-    unsigned int pin = request.pin;
+    vector<unsigned int> buf = request->buf;
+    int len = request->len;
+    unsigned int hz = request->hz;
+    unsigned int pin = request->pin;
     
     if (!self->enableIROut(hz))
     {
         return;
     }
     
-    for (int i = 0; i < len; i++)
+    for (vector<unsigned int>::size_type i = 0; i != buf.size(); i++)
     {
         if (i & 1)
         {
-            space(buf[i], pin);
+            self->space(buf[i], pin);
         }
         else
         {
-            mark(buf[i], pin);
+            self->mark(buf[i], pin);
         }
     }
-    space(0);
+    self->space(0, pin);
 }
 
 
 void IRsend::doCallback(uv_work_t* req)
 {
-   std::cout << "Callback" << std::endl;
+    LOG_INFO("Callback\n");
 
     req_data *request = (req_data*)req->data;
     //delete req;
 
-    std::cout << "D1" << std::endl;
-
     int argc = 0;
     v8::Handle<v8::Value> argv = v8::Null();
-    
-    std::cout << "D2" << std::endl;
 
     request->callback->Call(Context::GetCurrent()->Global(), argc, &argv);
-
-    std::cout << "D3" << std::endl;
 
     request->callback.Dispose();
 

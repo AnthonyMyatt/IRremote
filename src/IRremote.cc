@@ -7,9 +7,10 @@
 #include <vector>
 
 #include <libpwm.h>
-#include "SimpleGPIO.h"
+#include "Beagle_GPIO.h"
+//#include "SimpleGPIO.h"
 
-#include "IRremoteInt.h"
+#include "IRremoteInt.hh"
 
 //#define DEBUG
 
@@ -56,8 +57,9 @@ protected:
     void space(int usec, unsigned int pin);
 
 private:
-    LibPWM pwm;         // PWM Library
-    uv_loop_t *loop;    // LibUV Loop
+    LibPWM      pwm;      // PWM Library
+    uv_loop_t   *loop;    // LibUV Loop
+    Beagle_GPIO gpio;     // Low-Level (mmap) GPIO Control
 
     static const unsigned int SEND_PIN_1;
     static const unsigned int SEND_PIN_2;
@@ -103,10 +105,17 @@ struct JVC_req : req_data
 
 // ---------------------------
 
+/*
 const unsigned int IRsend::SEND_PIN_1 = 44;	// P8_12 GPIO-44
 const unsigned int IRsend::SEND_PIN_2 = 26;	// P8_14 GPIO-26
 const unsigned int IRsend::SEND_PIN_3 = 46;	// P8_16 GPIO-46
 const unsigned int IRsend::RECV_PIN   = 65;	// P8_18 GPIO-65
+ */
+
+const unsigned int IRsend::SEND_PIN_1 = Beagle_GPIO::P8_12;
+const unsigned int IRsend::SEND_PIN_2 = Beagle_GPIO::P8_14;
+const unsigned int IRsend::SEND_PIN_3 = Beagle_GPIO::P8_16;
+const unsigned int IRsend::RECV_PIN   = Beagle_GPIO::P8_18;
 
 Persistent<FunctionTemplate> IRsend::constructor;
 
@@ -139,6 +148,16 @@ IRsend::IRsend()
 {
     this->loop = uv_loop_new();
 
+    this->gpio->configurePin( SEND_PIN_1, Beagle_GPIO::kOUTPUT );
+    this->gpio->configurePin( SEND_PIN_2, Beagle_GPIO::kOUTPUT );
+    this->gpio->configurePin( SEND_PIN_3, Beagle_GPIO::kOUTPUT );
+    this->gpio->configurePin( RECV_PIN,   Beagle_GPIO::kINPUT );
+    
+    this->gpio->writePin( SEND_PIN_1, 0);
+    this->gpio->writePin( SEND_PIN_2, 0);
+    this->gpio->writePin( SEND_PIN_3, 0);
+    
+    /*
     gpio_export(SEND_PIN_1);
     gpio_export(SEND_PIN_2);
     gpio_export(SEND_PIN_3);
@@ -148,6 +167,15 @@ IRsend::IRsend()
     gpio_set_dir(SEND_PIN_2, OUTPUT_PIN);
     gpio_set_dir(SEND_PIN_3, OUTPUT_PIN);
     gpio_set_dir(RECV_PIN, INPUT_PIN);
+     */
+}
+
+IRsend::~IRsend()
+{
+    LOG_INFO( "Closing IRsend" );
+    this->gpio = NULL;
+    this->pwm = NULL;
+    this->loop = NULL;
 }
 
 Handle<Value> IRsend::New(const Arguments& args)
@@ -171,14 +199,15 @@ Handle<Value> IRsend::New(const Arguments& args)
 void IRsend::mark(int time, unsigned int pin)
 {
     //std::cout << "MARK" << std::endl;
-    gpio_set_value(pin, HIGH);
+    gpio->writePin( pin, 1 );
+    //gpio_set_value(pin, HIGH);
     if (time > 0) usleep(time);
 }
 
 void IRsend::space(int time, unsigned int pin)
 {
     //std::cout << "SPACE" << std::endl;
-    gpio_set_value(pin, LOW); 
+    gpio->writePin( pin, 0 );
     if (time > 0) usleep(time);
 }
 

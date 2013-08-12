@@ -7,12 +7,12 @@
 #include <vector>
 
 #include <libpwm.h>
-#include "Beagle_GPIO.h"
+#include "Beagle_GPIO.hh"
 //#include "SimpleGPIO.h"
 
-#include "IRremoteInt.hh"
+#include "IRremoteInt.h"
 
-//#define DEBUG
+#define DEBUG
 
 #include "debug.h"
 
@@ -24,6 +24,7 @@ public:
     static v8::Persistent<v8::FunctionTemplate> constructor;
     static void Init(v8::Handle<v8::Object> target);
     IRsend();
+    ~IRsend();
 
     // These functions are bound to Javascript
     static v8::Handle<v8::Value> sendNEC(const v8::Arguments& args);
@@ -57,9 +58,9 @@ protected:
     void space(int usec, unsigned int pin);
 
 private:
+    Beagle_GPIO gpio;     // Low-Level (mmap) GPIO Control
     LibPWM      pwm;      // PWM Library
     uv_loop_t   *loop;    // LibUV Loop
-    Beagle_GPIO gpio;     // Low-Level (mmap) GPIO Control
 
     static const unsigned int SEND_PIN_1;
     static const unsigned int SEND_PIN_2;
@@ -147,15 +148,22 @@ IRsend::IRsend()
 : ObjectWrap()
 {
     this->loop = uv_loop_new();
+    //this->gpio = new Beagle_GPIO();
 
-    this->gpio->configurePin( SEND_PIN_1, Beagle_GPIO::kOUTPUT );
-    this->gpio->configurePin( SEND_PIN_2, Beagle_GPIO::kOUTPUT );
-    this->gpio->configurePin( SEND_PIN_3, Beagle_GPIO::kOUTPUT );
-    this->gpio->configurePin( RECV_PIN,   Beagle_GPIO::kINPUT );
+    if (!this->gpio.isActive())
+    {
+	GPIO_ERROR("Invalid or Inactive GPIO Module");
+	return;
+    }
+
+    this->gpio.configurePin( SEND_PIN_1, Beagle_GPIO::kOUTPUT );
+    this->gpio.configurePin( SEND_PIN_2, Beagle_GPIO::kOUTPUT );
+    this->gpio.configurePin( SEND_PIN_3, Beagle_GPIO::kOUTPUT );
+    this->gpio.configurePin( RECV_PIN,   Beagle_GPIO::kINPUT );
     
-    this->gpio->writePin( SEND_PIN_1, 0);
-    this->gpio->writePin( SEND_PIN_2, 0);
-    this->gpio->writePin( SEND_PIN_3, 0);
+    this->gpio.writePin( SEND_PIN_1, 0);
+    this->gpio.writePin( SEND_PIN_2, 0);
+    this->gpio.writePin( SEND_PIN_3, 0);
     
     /*
     gpio_export(SEND_PIN_1);
@@ -173,9 +181,9 @@ IRsend::IRsend()
 IRsend::~IRsend()
 {
     LOG_INFO( "Closing IRsend" );
-    this->gpio = NULL;
-    this->pwm = NULL;
-    this->loop = NULL;
+    //this->gpio = NULL;
+    //this->pwm = NULL;
+    //this->loop = NULL;
 }
 
 Handle<Value> IRsend::New(const Arguments& args)
@@ -199,16 +207,16 @@ Handle<Value> IRsend::New(const Arguments& args)
 void IRsend::mark(int time, unsigned int pin)
 {
     //std::cout << "MARK" << std::endl;
-    gpio->writePin( pin, 1 );
+    this->gpio.writePin( pin, 1 );
     //gpio_set_value(pin, HIGH);
-    if (time > 0) usleep(time);
+    if (time > 0) usleep(time - 100);
 }
 
 void IRsend::space(int time, unsigned int pin)
 {
     //std::cout << "SPACE" << std::endl;
-    gpio->writePin( pin, 0 );
-    if (time > 0) usleep(time);
+    this->gpio.writePin( pin, 0 );
+    if (time > 0) usleep(time - 100);
 }
 
 bool IRsend::enableIROut(int khz)
@@ -216,11 +224,23 @@ bool IRsend::enableIROut(int khz)
     LOG_INFO("Enable IR Out: %u kHz\n", khz);
 
     pwm.stop();
-    if (!pwm.setPeriod(khz*1000) || !pwm.setDuty(0.5))
+
+    if (!pwm.setPeriod(khz*1000))
     {
-        LOG_ERROR("Failed to start IR output");
-        return false;
+        LOG_ERROR("Failed to set Period");
+	return false;
     }
+    else
+    {
+	LOG_INFO("Period Set");
+    }
+
+    if (!pwm.setDuty(0.5))
+    {
+	LOG_ERROR("Failed to set Duty");
+	return false;
+    }
+
     pwm.run();
     return true;
 }

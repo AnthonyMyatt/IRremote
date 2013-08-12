@@ -24,12 +24,14 @@
 //=======================================================
 //=======================================================
 
+// Modified by Anthony Myatt on 02/08/2013 to rename 'assert' macro
+
 #define GPIO_ERROR(msg)	std::cout << "[GPIO] Error : " << msg << std::endl;
  
 #define BEAGLE_GPIO_DEBUG
 #ifdef BEAGLE_GPIO_DEBUG
 	#define GPIO_PRINT(msg)	std::cout << "[GPIO] : " << msg << std::endl;
-	#define assert( condition ) 	\
+	#define GPIO_ASSERT( condition ) 	\
 		if (!(condition))	\
 		{			\
 			GPIO_ERROR( "Assert Failed in file '" << __FILE__ << "' on line " << __LINE__ );	\

@@ -44,12 +44,17 @@ var powerOn = [9061,4473, // Header
 		591,1660, // 1
 		591,1660];     // pTrail
 
-setInterval(test,100);
-
+var timer = setInterval(test,100);
+var i = 0;
 
 function test()
 {
 	IRsend.sendRaw(powerOn, 69, 38, IR.SEND_PIN_2, function() {
                 console.log("Test Callback");
                 });
+	i++;
+	if (i > 3)
+	{
+		clearInterval(timer);
+	}
 }

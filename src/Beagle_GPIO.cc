@@ -185,8 +185,8 @@ Beagle_GPIO::Beagle_GPIO_Status Beagle_GPIO::configurePin( unsigned short _pin, 
 	if ( !m_active )
 		return kFail;
 	
-	assert(GPIO_Pin_Bank[_pin]>=0);
-	assert(GPIO_Pin_Id[_pin]>=0);
+	GPIO_ASSERT(GPIO_Pin_Bank[_pin]>=0);
+	GPIO_ASSERT(GPIO_Pin_Id[_pin]>=0);
 
 	// Set Pin as GPIO on the pad control
 	m_controlModule[GPIO_Pad_Control[_pin]/4] |= 0x07;
@@ -218,8 +218,8 @@ Beagle_GPIO::Beagle_GPIO_Status Beagle_GPIO::enablePinInterrupts( unsigned short
 	if ( !m_active )
 		return kFail;
 	
-	assert(GPIO_Pin_Bank[_pin]>=0);
-	assert(GPIO_Pin_Id[_pin]>=0);
+	GPIO_ASSERT(GPIO_Pin_Bank[_pin]>=0);
+	GPIO_ASSERT(GPIO_Pin_Id[_pin]>=0);
 
 	// Set Pin as GPIO on the pad control
 	m_controlModule[GPIO_Pad_Control[_pin]/4] |= 0x07;
@@ -247,8 +247,8 @@ Beagle_GPIO::Beagle_GPIO_Status Beagle_GPIO::enablePinInterrupts( unsigned short
 // Write a value to a pin
 Beagle_GPIO::Beagle_GPIO_Status Beagle_GPIO::writePin( unsigned short _pin, unsigned char _value )
 {
-	assert(GPIO_Pin_Bank[_pin]>=0);
-	assert(GPIO_Pin_Id[_pin]>=0);
+	GPIO_ASSERT(GPIO_Pin_Bank[_pin]>=0);
+	GPIO_ASSERT(GPIO_Pin_Id[_pin]>=0);
 
 	unsigned long v = (_value & 0x01) << GPIO_Pin_Id[_pin];
 	unsigned long mask = 0x1 << GPIO_Pin_Id[_pin];
@@ -267,8 +267,8 @@ Beagle_GPIO::Beagle_GPIO_Status Beagle_GPIO::writePin( unsigned short _pin, unsi
 // Read a value from a pin
 unsigned char Beagle_GPIO::readPin( unsigned short _pin )
 {
-	assert(GPIO_Pin_Bank[_pin]>=0);
-	assert(GPIO_Pin_Id[_pin]>=0);
+	GPIO_ASSERT(GPIO_Pin_Bank[_pin]>=0);
+	GPIO_ASSERT(GPIO_Pin_Id[_pin]>=0);
 
 	unsigned long bit = GPIO_Pin_Id[_pin];
 	return (m_gpio[GPIO_Pin_Bank[_pin]][kDATAIN/4] & (0x1 << bit)) >> bit;
@@ -376,9 +376,9 @@ void Beagle_GPIO::closeSPI()
 // Send SPI Buffer
 void Beagle_GPIO::sendSPIBuffer( unsigned long _buffer, int _size )
 {
-	assert( m_spi_fd >= 0 );
-	assert( _buffer > 0 );
-	assert( _size > 0 );
+	GPIO_ASSERT( m_spi_fd >= 0 );
+	GPIO_ASSERT( _buffer > 0 );
+	GPIO_ASSERT( _size > 0 );
 
 	m_spi_ioc_tr.tx_buf = _buffer;
        	m_spi_ioc_tr.rx_buf = (unsigned long)(m_spi_buffer_rx);

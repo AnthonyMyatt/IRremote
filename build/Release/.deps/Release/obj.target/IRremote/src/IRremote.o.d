@@ -14,7 +14,7 @@ Release/obj.target/IRremote/src/IRremote.o: ../src/IRremote.cc \
  /home/root/.node-gyp/0.8.22/src/node.h \
  /home/root/.node-gyp/0.8.22/src/ev-emul.h \
  /home/root/.node-gyp/0.8.22/src/eio-emul.h ../include/libpwm.h \
- ../src/SimpleGPIO.h ../src/IRremoteInt.h ../src/debug.h
+ ../src/Beagle_GPIO.hh ../src/IRremoteInt.h ../src/debug.h
 ../src/IRremote.cc:
 /home/root/.node-gyp/0.8.22/src/node.h:
 /home/root/.node-gyp/0.8.22/deps/uv/include/uv.h:
@@ -31,6 +31,6 @@ Release/obj.target/IRremote/src/IRremote.o: ../src/IRremote.cc \
 /home/root/.node-gyp/0.8.22/src/ev-emul.h:
 /home/root/.node-gyp/0.8.22/src/eio-emul.h:
 ../include/libpwm.h:
-../src/SimpleGPIO.h:
+../src/Beagle_GPIO.hh:
 ../src/IRremoteInt.h:
 ../src/debug.h:

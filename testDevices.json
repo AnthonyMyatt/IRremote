@@ -1,0 +1,48 @@
+[
+    {
+        "name" : "LG TV",
+	"codes" : [
+	    {
+		"name" : "Power",
+		"type" : "NEC",
+		"data" : "20DF10EF",
+		"bits" : 32
+	    }
+	]
+    },
+    {
+        "name" : "Kogan TV",
+	"codes" : [
+	    {
+	        "name" : "Power",
+	        "type" : "NEC",
+	        "data" : "01FE41BE",
+		"bits" : 32
+	    },
+	    {
+		"name" : "Input",
+	        "type" : "NEC",
+		"data" : "01FEC936",
+		"bits" : 32
+	    },
+	    {
+		"name" : "Mute",
+		"type" : "NEC",
+		"data" : "01FE0BF4",
+		"bits" : 32
+	    },
+	    {
+		"name" : "One",
+	 	"type" : "NEC",
+		"data" : "01FE11EE",
+		"bits" : 32
+	    },
+	    {
+		"name" : "Two",
+		"type" : "NEC",
+		"data" : "01FE916E",
+		"bits" : 32
+	    }
+	]
+    }
+]

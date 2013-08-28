@@ -1,0 +1,3 @@
+[submodule "IRlib"]
+	path = IRlib
+	url = https://github.com/AnthonyMyatt/IRlib.git

@@ -30,6 +30,6 @@ The Node.JS module is based off of Ken Shirriff's IRremote library for the Ardui
 
 ## License
 
-<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en_US"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/88x31.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">IRremote for Beaglebone</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://anthonymyatt.net" property="cc:attributionName" rel="cc:attributionURL">Anthony Myatt</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en_US">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-nc-sa/3.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US">Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License</a>.
 
 A copy of the license can be found within the LICENSE file that should be in the same directory as this README file. If the license file is not included, you can find a copy of the license on the Creative Commons website.
